@@ -1,0 +1,7 @@
+include AUTHORS.txt
+include CHANGES.txt
+include LICENSE-GPL.txt
+include MANIFEST.in
+include README.rst
+include test_rexster.py
+recursive-include rexster *

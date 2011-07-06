@@ -1,0 +1,8 @@
+The PRIMARY AUTHORS are (ordered by aproximated LOC number):
+
+    * Diego Muñoz Escalante <escalant3@gmail.com>
+
+And a big THANK YOU goes to:
+
+    * University of Western Ontario and CulturePlex Lab for the funding.
+    * Guido van Rossum for creating Python.
