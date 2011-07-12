@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+0.1.1 (2011-07-12)
+------------------
+- Added returning None instead of raising exceptions (more pythonic way)
+- Updated tests
+
 0.1 (2011-07-6)
 ---------------
 Initial version

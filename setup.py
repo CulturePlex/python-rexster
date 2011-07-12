@@ -9,7 +9,7 @@ from distutils.core import setup
 
 __author__ = "Diego Muñoz Escalante"
 __license__ = "GPL 3"
-__version__ = "0.1"
+__version__ = "0.1.1"
 __email__ = "escalant3@gmail.com"
 __url__ = "https://github.com/CulturePlex/python-rexster"
 __description__ = """A Python client for Rexster following
