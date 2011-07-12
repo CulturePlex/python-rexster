@@ -239,7 +239,10 @@ class RexsterGraph(object):
         @params _id: Node unique identifier
 
         @returns The requested Vertex or None"""
-        return Vertex(self, _id)
+        try:
+            return Vertex(self, _id)
+        except RexsterException:
+            return None
 
     def getVertices(self):
         """Returns an iterator with all the vertices"""
@@ -293,7 +296,10 @@ class RexsterGraph(object):
         @params _id: Edge unique identifier
 
         @returns The requested Edge"""
-        return Edge(self, _id)
+        try:
+            return Edge(self, _id)
+        except RexsterException:
+            return None
 
     def removeEdge(self, edge):
         """Removes the given edge
@@ -446,7 +452,7 @@ class RexsterIndexableGraph(RexsterGraph):
     def createManualIndex(self, indexName, indexClass):
         """Creates a manual index
         @params name: The index name
-        @params indexClass: VERTICES or EDGES
+        @params indexClass: vertex or edge
 
         @returns The created Index"""
         content = self.__createIndex(indexName, indexClass, 'manual')
@@ -455,7 +461,7 @@ class RexsterIndexableGraph(RexsterGraph):
     def createAutomaticIndex(self, indexName, indexClass, autoKeys=[]):
         """Creates an automatic index
         @params name: The index name
-        @params indexClass: VERTICES or EDGES
+        @params indexClass: vertex or edge
         @params autoKeys: A list of the automatically indexed properties
 
         @returns The created AutomaticIndex"""
@@ -481,12 +487,12 @@ class RexsterIndexableGraph(RexsterGraph):
         @params indexName: The index name
         @params indexClass: VERTICES or EDGES
 
-        @return The Index object"""
+        @return The Index object or None"""
         url = "%s/indices/%s" % (self.url, indexName)
         r = requests.get(url)
         content = simplejson.loads(r.content)
         if r.error:
-            raise RexsterException(content['message'])
+            return None
         if content['type'] == 'automatic':
             return AutomaticIndex(self, content['name'],
                                 content['class'], content['type'])

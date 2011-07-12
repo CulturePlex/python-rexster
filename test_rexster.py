@@ -49,7 +49,7 @@ class RequestServerTestSuite(unittest.TestCase):
         self.assertIsInstance(vertex, Vertex)
         _id = vertex.getId()
         graph.removeVertex(vertex)
-        self.assertRaises(RexsterException, graph.getVertex, _id)
+        self.assertIsNone(graph.getVertex(_id))
 
     def testVertexMethods(self):
         server = RexsterServer('http://localhost:8182')
@@ -99,9 +99,7 @@ class RequestServerTestSuite(unittest.TestCase):
         self.assertIsInstance(newEdge, Edge)
         _id = newEdge.getId()
         graph.removeEdge(newEdge)
-        self.assertRaises(RexsterException,
-                            graph.getEdge,
-                            _id)
+        self.assertIsNone(graph.getEdge(_id))
 
     def testGetVertices(self):
         server = RexsterServer('http://localhost:8182')
@@ -125,10 +123,7 @@ class RequestServerTestSuite(unittest.TestCase):
         index = graph.getIndex('myManualIndex', 'vertex')
         self.assertIsInstance(index, Index)
         graph.dropIndex('myManualIndex')
-        self.assertRaises(RexsterException,
-                            graph.getIndex,
-                            'myManualIndex',
-                            'vertex')
+        self.assertIsNone(graph.getIndex('myManualIndex', 'vertex'))
 
     def testAddRemoveAutomaticIndex(self):
         server = RexsterServer('http://localhost:8182')
@@ -142,10 +137,7 @@ class RequestServerTestSuite(unittest.TestCase):
         #TODO self.assertIn('key1', autoKeys)
         #TODO self.assertIn('key2', autoKeys)
         graph.dropIndex('myAutoIndex')
-        self.assertRaises(RexsterException,
-                            graph.getIndex,
-                            'myAutoIndex',
-                            'vertex')
+        self.assertIsNone(graph.getIndex('myAutoIndex', 'vertex'))
 
     def testIndexing(self):
         server = RexsterServer('http://localhost:8182')
