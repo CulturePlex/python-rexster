@@ -42,7 +42,7 @@ setup(
         ],
     zip_safe=False,
     packages=[
-        "python-rexster",
+        "rexster",
     ],
     include_package_data=True,
     install_requires=[
