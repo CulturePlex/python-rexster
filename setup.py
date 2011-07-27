@@ -4,7 +4,7 @@
 
 import os
 
-from distutils.core import setup
+from setuptools import setup
 
 
 __author__ = "Diego Muñoz Escalante"

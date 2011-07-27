@@ -108,6 +108,14 @@ class Element(object):
             raise RexsterException(error_msg)
         self.properties.pop(key)
 
+    def __eq__(self, other):
+        """Two elements are equals when they are the same type() and the same id
+        @params other: the objects to be compared with"""
+	if type(self) == type(other):
+		return self.getId() == other.getId()
+	else:
+		return False
+
 
 class Vertex(Element):
     """An abstract class defining a Vertex object representing
@@ -319,8 +327,13 @@ class Index(object):
         self.graph = graph
         self.indexName = indexName
         self.indexType = indexType
-        indexClass = (indexClass.split('.')[-1]).lower()
-        self.indexClass = indexClass
+        short_indexClass = (indexClass.split('.')[-1]).lower()
+	if 'vertex' in short_indexClass:
+        	self.indexClass = 'vertex'
+	elif 'edge' in short_indexClass:
+		self.indexClass = 'edge'
+	else:
+		raise RexsterException("Cannot determine indexClass for %s" % indexClass)
         self.url = "%s/indices/%s" % (self.graph.url,
                                     self.indexName)
 
@@ -390,7 +403,7 @@ class Index(object):
         if r.error:
             raise RexsterException(content['message'])
         for item in content['results']:
-            if self.indexClass == 'vertex':
+            if self.indexClass in ('vertex', 'neo4jvertex'):
                 yield Vertex(self.graph, item.get('_id'))
             else:
                 yield Edge(self.graph, item.get('_id'))
@@ -482,7 +495,7 @@ class RexsterIndexableGraph(RexsterGraph):
         for index in content['results']:
             yield Index(self, index['name'], index['class'], index['type'])
 
-    def getIndex(self, indexName, indexClass):
+    def getIndex(self, indexName, indexClass=None):
         """Retrieves an index with a given index name and class
         @params indexName: The index name
         @params indexClass: VERTICES or EDGES
