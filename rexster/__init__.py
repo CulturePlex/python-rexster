@@ -318,6 +318,36 @@ class RexsterGraph(object):
         if r.error:
             raise RexsterException("Could not delete edge")
 
+    def gremlin_execute(self, gremlin_script):
+        url = '%s/tp/gremlin' % (self.url)
+        r = requests.post(url, data={'script':gremlin_script})
+        if r.content:
+            content = simplejson.loads(r.content)
+
+        if r.error:
+            raise RexsterException(content['message'])
+        elif content:
+            return content
+
+    # attention: gremlin must be enabled        
+    def shortest_path(self, start, end):
+        if type(start) != Vertex or type(end) != Vertex:
+            raise RexsterException("both start and end must be valid vertices!")
+
+        #gremlin_script = 'g = rexster.getGraph("%s")' % self.name
+        #gremlin_result = self.gremlin_execute(gremlin_script)['results']
+#        gremlin_script = 'gj = new GraphJung(g)'
+#        self.gremlin_execute(gremlin_script)
+#        gremlin_script = 'dsp = new edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath(gj)'
+#        self.gremlin_execute(gremlin_script)
+#        gremlin_script = 'dsp.getPath(g.v(%d),g.v(%d))' % (start.getId(), end.getId())
+#        gremlin_result = self.gremlin_execute(gremlin_script)['results']
+
+        gremlin_script = '(new edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath(new GraphJung(g))).getPath(g.v(%d),g.v(%d))' % (start.getId(), end.getId())
+        gremlin_result = self.gremlin_execute(gremlin_script)['results']
+
+        for edge in gremlin_result:
+            yield Edge(self, edge.get('_id'))
 
 class Index(object):
     """An class containing all the methods needed by an
@@ -503,7 +533,8 @@ class RexsterIndexableGraph(RexsterGraph):
         @return The Index object or None"""
         url = "%s/indices/%s" % (self.url, indexName)
         r = requests.get(url)
-        content = simplejson.loads(r.content)
+        #rexster 0.4 content = simplejson.loads(r.content)
+        content = simplejson.loads(r.content)['results'] #rexster 0.5
         if r.error:
             return None
         if content['type'] == 'automatic':
