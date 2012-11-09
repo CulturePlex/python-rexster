@@ -108,6 +108,14 @@ class Element(object):
             raise RexsterException(error_msg)
         self.properties.pop(key)
 
+    def __eq__(self, other):
+        """Two elements are equals when they are the same type() and the same id
+        @params other: the objects to be compared with"""
+	if type(self) == type(other):
+		return self.getId() == other.getId()
+	else:
+		return False
+
 
 class Vertex(Element):
     """An abstract class defining a Vertex object representing
@@ -310,6 +318,36 @@ class RexsterGraph(object):
         if r.error:
             raise RexsterException("Could not delete edge")
 
+    def gremlin_execute(self, gremlin_script):
+        url = '%s/tp/gremlin' % (self.url)
+        r = requests.post(url, data={'script':gremlin_script})
+        if r.content:
+            content = simplejson.loads(r.content)
+
+        if r.error:
+            raise RexsterException(content['message'])
+        elif content:
+            return content
+
+    # attention: gremlin must be enabled        
+    def shortest_path(self, start, end):
+        if type(start) != Vertex or type(end) != Vertex:
+            raise RexsterException("both start and end must be valid vertices!")
+
+        #gremlin_script = 'g = rexster.getGraph("%s")' % self.name
+        #gremlin_result = self.gremlin_execute(gremlin_script)['results']
+#        gremlin_script = 'gj = new GraphJung(g)'
+#        self.gremlin_execute(gremlin_script)
+#        gremlin_script = 'dsp = new edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath(gj)'
+#        self.gremlin_execute(gremlin_script)
+#        gremlin_script = 'dsp.getPath(g.v(%d),g.v(%d))' % (start.getId(), end.getId())
+#        gremlin_result = self.gremlin_execute(gremlin_script)['results']
+
+        gremlin_script = '(new edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath(new GraphJung(g))).getPath(g.v(%d),g.v(%d))' % (start.getId(), end.getId())
+        gremlin_result = self.gremlin_execute(gremlin_script)['results']
+
+        for edge in gremlin_result:
+            yield Edge(self, edge.get('_id'))
 
 class Index(object):
     """An class containing all the methods needed by an
@@ -319,8 +357,13 @@ class Index(object):
         self.graph = graph
         self.indexName = indexName
         self.indexType = indexType
-        indexClass = (indexClass.split('.')[-1]).lower()
-        self.indexClass = indexClass
+        short_indexClass = (indexClass.split('.')[-1]).lower()
+	if 'vertex' in short_indexClass:
+        	self.indexClass = 'vertex'
+	elif 'edge' in short_indexClass:
+		self.indexClass = 'edge'
+	else:
+		raise RexsterException("Cannot determine indexClass for %s" % indexClass)
         self.url = "%s/indices/%s" % (self.graph.url,
                                     self.indexName)
 
@@ -390,7 +433,7 @@ class Index(object):
         if r.error:
             raise RexsterException(content['message'])
         for item in content['results']:
-            if self.indexClass == 'vertex':
+            if self.indexClass in ('vertex', 'neo4jvertex'):
                 yield Vertex(self.graph, item.get('_id'))
             else:
                 yield Edge(self.graph, item.get('_id'))
@@ -482,7 +525,7 @@ class RexsterIndexableGraph(RexsterGraph):
         for index in content['results']:
             yield Index(self, index['name'], index['class'], index['type'])
 
-    def getIndex(self, indexName, indexClass):
+    def getIndex(self, indexName, indexClass=None):
         """Retrieves an index with a given index name and class
         @params indexName: The index name
         @params indexClass: VERTICES or EDGES
@@ -490,7 +533,8 @@ class RexsterIndexableGraph(RexsterGraph):
         @return The Index object or None"""
         url = "%s/indices/%s" % (self.url, indexName)
         r = requests.get(url)
-        content = simplejson.loads(r.content)
+        #rexster 0.4 content = simplejson.loads(r.content)
+        content = simplejson.loads(r.content)['results'] #rexster 0.5
         if r.error:
             return None
         if content['type'] == 'automatic':
